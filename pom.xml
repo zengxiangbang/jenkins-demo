@@ -23,8 +23,7 @@
 	   <!-- 配置从哪个仓库中下载构件，即jar包 -->  
 	   <pluginRepositories>  
 	       <pluginRepository>  
-	      <!--   <id>nexus</id>  -->
-	         <id>central</id>  
+	         <id>nexus</id>
 	         <name>Nexus Snapshot Repository</name>  
 	         <url>http://192.168.18.247:9093/nexus/content/groups/public/</url>  
 	         <releases>  
