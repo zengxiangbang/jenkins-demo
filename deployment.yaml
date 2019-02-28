@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: ${REPO}
-        image: ${ORIGIN_REPO}/${BRANCH}/${REPO}:${IMAGE_TAG}
+        image: ${ORIGIN_REPO}/${BRANCH}/${REPO}:${$BUILD_NUMBER}
         imagePullPolicy: Always
         ports:
         - name: http
