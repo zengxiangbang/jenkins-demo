@@ -44,43 +44,43 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: JAVA_OPTS
-          value: -javaagent:/usr/local/tomcat/lib/jmx_prometheus_javaagent-0.9.jar=9151:/usr/local/tomcat/lib/jmx_config.yaml -Xmx$(LIMITS_MEMORY)m -Dmy.pod.name=$(MY_POD_NAME) -Dmy.pod.namespace=$(MY_POD_NAMESPACE) -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8 -server -Duser.timezone=GMT+08 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+DisableExplicitGC
+#        - name: JAVA_OPTS
+#          value: -javaagent:/usr/local/tomcat/lib/jmx_prometheus_javaagent-0.9.jar=9151:/usr/local/tomcat/lib/jmx_config.yaml -Xmx$(LIMITS_MEMORY)m -Dmy.pod.name=$(MY_POD_NAME) -Dmy.pod.namespace=$(MY_POD_NAMESPACE) -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8 -server -Duser.timezone=GMT+08 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+DisableExplicitGC
 
-        volumeMounts:
-        - name: tomcat-logs
-          mountPath: /usr/local/tomcat/logs
-        - name: tomcat-config
-          mountPath: /usr/local/tomcat/conf/server.xml
-          subPath: server.xml
-        - name: tomcat-config
-          mountPath: /usr/local/tomcat/conf/logging.properties
-          subPath: logging.properties
-        - name: tomcat-config
-          mountPath: /usr/local/tomcat/conf/context.xml
-          subPath: context.xml
-        - name: tomcat-config
-          mountPath: /usr/local/tomcat/conf/tomcat-users.xml
-          subPath: tomcat-users.xml
+#        volumeMounts:
+#        - name: tomcat-logs
+#          mountPath: /usr/local/tomcat/logs
+#        - name: tomcat-config
+#          mountPath: /usr/local/tomcat/conf/server.xml
+#          subPath: server.xml
+#        - name: tomcat-config
+#          mountPath: /usr/local/tomcat/conf/logging.properties
+#          subPath: logging.properties
+#        - name: tomcat-config
+#          mountPath: /usr/local/tomcat/conf/context.xml
+#          subPath: context.xml
+#        - name: tomcat-config
+#          mountPath: /usr/local/tomcat/conf/tomcat-users.xml
+#          subPath: tomcat-users.xml
 
 ############healthcheck配置
 
-        livenessProbe:  
-          httpGet:
-            path: /healthcheck.html
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 30
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 5
+#        livenessProbe:  
+#          httpGet:
+#            path: /healthcheck.html
+#            port: 8080
+#            scheme: HTTP
+#          initialDelaySeconds: 30
+#          timeoutSeconds: 5
+#          successThreshold: 1
+#          failureThreshold: 5
 
-        readinessProbe:
-          httpGet:
-            port: 8080
-            path: /healthcheck.html
-          initialDelaySeconds: 30
-          periodSeconds: 5
+#        readinessProbe:
+#          httpGet:
+#            port: 8080
+#            path: /healthcheck.html
+#          initialDelaySeconds: 30
+#          periodSeconds: 5
 
 ###资源配置
         resources:
@@ -97,13 +97,13 @@ spec:
 #      restartPolicy: Always
 
 ############挂载点
-      volumes:
-      - name: tomcat-logs
-        hostPath:
-          path: /opt/logs/tomcat/${REPO}
-      - name: tomcat-config
-        configMap:
-          name: tomcat-config
+#      volumes:
+#      - name: tomcat-logs
+#        hostPath:
+#          path: /opt/logs/tomcat/${REPO}
+#      - name: tomcat-config
+#        configMap:
+#          name: tomcat-config
 #---
 #apiVersion: v1
 #kind: Service
