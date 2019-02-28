@@ -2,7 +2,7 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: ${REPO}
-  namespace: ${BRANCH}
+#  namespace: ${BRANCH}
   labels:
     k8s-app: tomcat
     name: ${REPO}
