@@ -124,36 +124,36 @@ spec:
     name: http-metrics
 
   selector:
-    name: java-${REPO}
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: traefik-${REPO}
-  namespace: ${BRANCH}
-  annotations:
-    kubernetes.io/ingress.class: traefik
-    traefik.frontend.rule.type: PathPrefixStrip
-spec:
-  rules:
-  - host: yzkf2.mail.10086.cn
-    http:
-      paths:
-      - path: /${REPO}/
-        backend:
-          serviceName: ${REPO}
-          servicePort: 8080
----
-apiVersion: autoscaling/v1
-kind: HorizontalPodAutoscaler
-metadata:
-  name: ${REPO}
-  namespace: ${BRANCH}
-spec:
-  maxReplicas: 10
-  minReplicas: 2
-  scaleTargetRef:
-    apiVersion: extensions/v1beta1
-    kind: Deployment
     name: ${REPO}
-  targetCPUUtilizationPercentage: 50
+#---
+#apiVersion: extensions/v1beta1
+#kind: Ingress
+#metadata:
+#  name: traefik-${REPO}
+#  namespace: ${BRANCH}
+#  annotations:
+#    kubernetes.io/ingress.class: traefik
+#    traefik.frontend.rule.type: PathPrefixStrip
+#spec:
+#  rules:
+#  - host: yzkf2.mail.10086.cn
+#    http:
+#      paths:
+#      - path: /${REPO}/
+#        backend:
+#          serviceName: ${REPO}
+#          servicePort: 8080
+#---
+#apiVersion: autoscaling/v1
+#kind: HorizontalPodAutoscaler
+#metadata:
+#  name: ${REPO}
+#  namespace: ${BRANCH}
+#spec:
+#  maxReplicas: 10
+#  minReplicas: 2
+#  scaleTargetRef:
+#    apiVersion: extensions/v1beta1
+#    kind: Deployment
+#    name: ${REPO}
+#  targetCPUUtilizationPercentage: 50
