@@ -52,7 +52,7 @@
 	<dependencies>
 	</dependencies>
 	<build>
-		<finalName>demo</finalName>
+		<finalName>jenkins-demo-web</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
