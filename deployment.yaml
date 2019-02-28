@@ -140,7 +140,7 @@ spec:
   - host: yzkf2.mail.10086.cn
     http:
       paths:
-      - path: /${REPO}/
+      - path: /${REPO}
         backend:
           serviceName: ${REPO}
           servicePort: 8080
