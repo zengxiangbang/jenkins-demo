@@ -19,11 +19,11 @@ spec:
       - name: ${REPO}
         image: ${ORIGIN_REPO}/${BRANCH}/${REPO}:${IMAGE_TAG}
         imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 8080
-        - name: http-metrics
-          containerPort: 9151
+#        ports:
+#        - name: http
+#          containerPort: 8080
+#        - name: http-metrics
+#          containerPort: 9151
 
 #############pod环境变量
         env:
