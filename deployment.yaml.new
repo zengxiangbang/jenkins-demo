@@ -1,11 +1,11 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: ${REPO}
-  namespace: ${BRANCH}
+  name: jenkins-java-demo
+  namespace: master
   labels:
     k8s-app: tomcat
-    name: ${REPO}
+    name: jenkins-java-demo
   
 spec:
   replicas: 1
@@ -13,11 +13,11 @@ spec:
     metadata:
       labels: 
         k8s-app: tomcat
-        name: ${REPO}
+        name: jenkins-java-demo
     spec:
       containers:
-      - name: ${REPO}
-        image: ${ORIGIN_REPO}/${BRANCH}/${REPO}:${IMAGE_TAG}
+      - name: jenkins-java-demo
+        image: harbor2.mail.10086.cn/master/jenkins-java-demo:67
         imagePullPolicy: Always
         ports:
         - name: http
@@ -100,7 +100,7 @@ spec:
       volumes:
       - name: tomcat-logs
         hostPath:
-          path: /opt/logs/tomcat/${REPO}
+          path: /opt/logs/tomcat/jenkins-java-demo
       - name: tomcat-config
         configMap:
           name: tomcat-config
@@ -108,8 +108,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${REPO}
-  namespace: ${BRANCH}
+  name: jenkins-java-demo
+  namespace: master
   labels:
     k8s-app: tomcat
 spec:
@@ -124,13 +124,13 @@ spec:
     name: http-metrics
 
   selector:
-    name: ${REPO}
-#---
+    name: jenkins-java-demo
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: traefik-${REPO}
-  namespace: ${BRANCH}
+  name: traefik-jenkins-java-demo
+  namespace: master
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.frontend.rule.type: PathPrefixStrip
@@ -139,21 +139,21 @@ spec:
   - host: yzkf2.mail.10086.cn
     http:
       paths:
-      - path: /${REPO}/
+      - path: /jenkins-java-demo/
         backend:
-          serviceName: ${REPO}
+          serviceName: jenkins-java-demo
           servicePort: 8080
-#---
-#apiVersion: autoscaling/v1
-#kind: HorizontalPodAutoscaler
-#metadata:
-#  name: ${REPO}
-#  namespace: ${BRANCH}
-#spec:
-#  maxReplicas: 10
-#  minReplicas: 2
-#  scaleTargetRef:
-#    apiVersion: extensions/v1beta1
-#    kind: Deployment
-#    name: ${REPO}
-#  targetCPUUtilizationPercentage: 50
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jenkins-java-demo
+  namespace: master
+spec:
+  maxReplicas: 10
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: jenkins-java-demo
+  targetCPUUtilizationPercentage: 50
