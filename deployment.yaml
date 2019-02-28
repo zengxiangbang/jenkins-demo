@@ -92,9 +92,9 @@ spec:
             memory: 500Mi
 
 ############私有仓库私钥
-      imagePullSecrets:
-      - name: ${KUBERNETES_SECRET_NAME}
-      restartPolicy: Always
+#      imagePullSecrets:
+#      - name: ${KUBERNETES_SECRET_NAME}
+#      restartPolicy: Always
 
 ############挂载点
       volumes:
