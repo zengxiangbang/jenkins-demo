@@ -6,7 +6,6 @@ metadata:
   labels:
     k8s-app: tomcat
     name: ${REPO}
-  
 spec:
   replicas: 2
   template:
@@ -24,7 +23,6 @@ spec:
 #          containerPort: 8080
 #        - name: http-metrics
 #          containerPort: 9151
-
 #############pod环境变量
         env:
         - name: LIMITS_MEMORY
@@ -46,7 +44,6 @@ spec:
               fieldPath: metadata.namespace
 #        - name: JAVA_OPTS
 #          value: -javaagent:/usr/local/tomcat/lib/jmx_prometheus_javaagent-0.9.jar=9151:/usr/local/tomcat/lib/jmx_config.yaml -Xmx$(LIMITS_MEMORY)m -Dmy.pod.name=$(MY_POD_NAME) -Dmy.pod.namespace=$(MY_POD_NAMESPACE) -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8 -server -Duser.timezone=GMT+08 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+DisableExplicitGC
-
 #        volumeMounts:
 #        - name: tomcat-logs
 #          mountPath: /usr/local/tomcat/logs
@@ -62,9 +59,7 @@ spec:
 #        - name: tomcat-config
 #          mountPath: /usr/local/tomcat/conf/tomcat-users.xml
 #          subPath: tomcat-users.xml
-
 ############healthcheck配置
-
 #        livenessProbe:  
 #          httpGet:
 #            path: /healthcheck.html
@@ -74,14 +69,12 @@ spec:
 #          timeoutSeconds: 5
 #          successThreshold: 1
 #          failureThreshold: 5
-
 #        readinessProbe:
 #          httpGet:
 #            port: 8080
 #            path: /healthcheck.html
 #          initialDelaySeconds: 30
 #          periodSeconds: 5
-
 ###资源配置
         resources:
           requests:
@@ -90,12 +83,10 @@ spec:
           limits:
             cpu: 2
             memory: 500Mi
-
 ############私有仓库私钥
 #      imagePullSecrets:
 #      - name: ${KUBERNETES_SECRET_NAME}
 #      restartPolicy: Always
-
 ############挂载点
 #      volumes:
 #      - name: tomcat-logs
