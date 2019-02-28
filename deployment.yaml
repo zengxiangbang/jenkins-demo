@@ -1,34 +1,159 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: jenkins-java-demo
+  name: ${REPO}
+  namespace: ${BRANCH}
+  labels:
+    k8s-app: tomcat
+    name: ${REPO}
+  
 spec:
   replicas: 2
-  selector:
-    matchLabels:
-      app: jenkins-java-demo
   template:
     metadata:
-      labels:
-        app: jenkins-java-demo
+      labels: 
+        k8s-app: tomcat
+        name: ${REPO}
     spec:
       containers:
-      - name: jenkins-java-demo
-        image: ${ORIGIN_REPO}/${REPO}:${IMAGE_TAG}
+      - name: ${REPO}
+        image: ${ORIGIN_REPO}/${BRANCH}/${REPO}:${IMAGE_TAG}
         imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - name: http
+          containerPort: 8080
+        - name: http-metrics
+          containerPort: 9151
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jenkins-java-demo
-spec:
-  ports:
-  - port: 80
-    targetPort: 8080
-    name: jenkins-java-demo
-  selector:
-    app: jenkins-java-demo
-  type: LoadBalancer
+#############pod环境变量
+        env:
+        - name: LIMITS_MEMORY
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.memory
+              divisor: 1Mi
+        - name: LIMITS_CPU
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.cpu
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: JAVA_OPTS
+          value: -javaagent:/usr/local/tomcat/lib/jmx_prometheus_javaagent-0.9.jar=9151:/usr/local/tomcat/lib/jmx_config.yaml -Xmx$(LIMITS_MEMORY)m -Dmy.pod.name=$(MY_POD_NAME) -Dmy.pod.namespace=$(MY_POD_NAMESPACE) -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8 -server -Duser.timezone=GMT+08 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+DisableExplicitGC
+
+        volumeMounts:
+        - name: tomcat-logs
+          mountPath: /usr/local/tomcat/logs
+        - name: tomcat-config
+          mountPath: /usr/local/tomcat/conf/server.xml
+          subPath: server.xml
+        - name: tomcat-config
+          mountPath: /usr/local/tomcat/conf/logging.properties
+          subPath: logging.properties
+        - name: tomcat-config
+          mountPath: /usr/local/tomcat/conf/context.xml
+          subPath: context.xml
+        - name: tomcat-config
+          mountPath: /usr/local/tomcat/conf/tomcat-users.xml
+          subPath: tomcat-users.xml
+
+############healthcheck配置
+
+        livenessProbe:  
+          httpGet:
+            path: /healthcheck.html
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+
+        readinessProbe:
+          httpGet:
+            port: 8080
+            path: /healthcheck.html
+          initialDelaySeconds: 30
+          periodSeconds: 5
+
+###资源配置
+        resources:
+          requests:
+            cpu: 300m
+            memory: 200Mi
+          limits:
+            cpu: 2
+            memory: 500Mi
+
+############私有仓库私钥
+      imagePullSecrets:
+      - name: ${KUBERNETES_SECRET_NAME}
+      restartPolicy: Always
+
+############挂载点
+      volumes:
+      - name: tomcat-logs
+        hostPath:
+          path: /opt/logs/tomcat/${REPO}
+      - name: tomcat-config
+        configMap:
+          name: tomcat-config
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: ${REPO}
+#  namespace: ${BRANCH}
+#  labels:
+#    k8s-app: tomcat
+#spec:
+#  ports:
+#  - port: 8080
+#    protocol: TCP
+#    targetPort: 8080
+#    name: http
+#  - port:  9151
+#    protocol: TCP
+#    targetPort: 9151
+#    name: http-metrics
+#
+#  selector:
+#    name: ${REPO}
+##---
+#apiVersion: extensions/v1beta1
+#kind: Ingress
+#metadata:
+#  name: traefik-${REPO}
+#  namespace: ${BRANCH}
+#  annotations:
+#    kubernetes.io/ingress.class: traefik
+#    traefik.frontend.rule.type: PathPrefixStrip
+#spec:
+#  rules:
+#  - host: yzkf2.mail.10086.cn
+#    http:
+#      paths:
+#      - path: /${REPO}/
+#        backend:
+#          serviceName: ${REPO}
+#          servicePort: 8080
+#---
+#apiVersion: autoscaling/v1
+#kind: HorizontalPodAutoscaler
+#metadata:
+#  name: ${REPO}
+#  namespace: ${BRANCH}
+#spec:
+#  maxReplicas: 10
+#  minReplicas: 2
+#  scaleTargetRef:
+#    apiVersion: extensions/v1beta1
+#    kind: Deployment
+#    name: ${REPO}
+#  targetCPUUtilizationPercentage: 50
