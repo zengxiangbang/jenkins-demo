@@ -2,11 +2,11 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ${REPO}
+  name: ${envs}-${REPO}
   namespace: ${envs}
   labels:
     k8s-app: tomcat
-    name: ${REPO}
+    name: ${envs}-${REPO}
   
 spec:
   replicas: 2
@@ -14,10 +14,10 @@ spec:
     metadata:
       labels: 
         k8s-app: tomcat
-        name: ${REPO}
+        name: ${envs}-${REPO}
     spec:
       containers:
-      - name: ${REPO}
+      - name: ${envs}-${REPO}
         image: ${ORIGIN_REPO}/${envs}/${REPO}:${BUILD_NUMBER}
         imagePullPolicy: Always
         ports:
@@ -101,7 +101,7 @@ spec:
       volumes:
       - name: tomcat-logs
         hostPath:
-          path: /opt/logs/tomcat/${REPO}
+          path: /opt/logs/tomcat/${envs}/${REPO}
       - name: tomcat-config
         configMap:
           name: tomcat-config
@@ -109,7 +109,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${REPO}
+  name: ${envs}-${REPO}
   namespace: ${envs}
   labels:
     k8s-app: tomcat
@@ -125,12 +125,12 @@ spec:
     name: http-metrics
 
   selector:
-    name: ${REPO}
+    name: ${envs}-${REPO}
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: traefik-${REPO}
+  name: traefik-${envs}-${REPO}
   namespace: ${envs}
   annotations:
     kubernetes.io/ingress.class: traefik
@@ -143,13 +143,13 @@ spec:
       paths:
       - path: /${REPO}
         backend:
-          serviceName: ${REPO}
+          serviceName: ${envs}-${REPO}
           servicePort: 8080
 ---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: ${REPO}
+  name: ${envs}-${REPO}
   namespace: ${envs}
 spec:
   maxReplicas: 10
@@ -157,5 +157,5 @@ spec:
   scaleTargetRef:
     apiVersion: extensions/v1beta1
     kind: Deployment
-    name: ${REPO}
+    name: ${envs}-${REPO}
   targetCPUUtilizationPercentage: 50
