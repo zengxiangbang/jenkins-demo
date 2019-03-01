@@ -3,7 +3,7 @@ pipeline{
        parameters {		 
 		string(name: 'origin_repo', defaultValue: 'harbor2.mail.10086.cn', description: 'docker私仓地址')
         string(name: 'repo', defaultValue: "${JOB_NAME}", description: 'docker镜像名')
-        choice(name: 'GIT_BRANCH', choices: ['master', 'dev', 'test', 'grey'], description: 'git 分支\nmaster --生产线\ndev      --开发线\ntest      --测试线\ngrey     --灰度线')
+        choice(name: 'envs', choices: ['prod', 'dev', 'test', 'grey'], description: 'prod    --生产线,  master分支\ndev      --开发线,  dev分支\ntest      --测试线,  test分支\ngrey     --灰度线,  grey分支')
         }
       // 定义groovy脚本中使用的环境变量
       environment{
@@ -13,8 +13,8 @@ pipeline{
         //  IMAGE_TAG =  sh(returnStdout: true,script: 'echo $BUILD_NUMBER').trim()  
         //  BRANCH =  sh(returnStdout: true,script: 'echo $GIT_BRANCH').trim()
         IMAGE_TAG = "${BUILD_NUMBER}"
-        BRANCH = "${params.GIT_BRANCH}"
-        ENVS =  sh(returnStdout: true,script: 'if [ "$GIT_BRANCH" == "master" ];then envs=prod;elif  [ "$GIT_BRANCH" == "dev" ];then envs=dev;elif  [ "$GIT_BRANCH" == "test" ];then envs=test;elif  [ "$GIT_BRANCH" == "grey" ];then envs=grey;fi ;echo $envs').trim()
+        ENVS = "${params.envs}"
+        BRANCH = sh(returnStdout: true,script: 'if [ "$envs" == "prod" ];then BRANCH=master;else BRANCH="$envs";fi ;echo $BRANCH').trim()
         }
       
       // 定义本次构建使用哪个标签的构建环境，本示例中为 “slave-pipeline”
@@ -99,7 +99,7 @@ pipeline{
          //                   echo "############ wrong pipeline name ############"
         //                    break
         //            }
-         git branch: "${params.GIT_BRANCH}", credentialsId: 'github', url: "https://github.com/zengxiangbang/${params.repo}.git"
+         git branch: "${BRANCH}", credentialsId: 'github', url: "https://github.com/zengxiangbang/${params.repo}.git"
         //           git branch: "${GIT_BRANCH}", credentialsId: 'github', url: "https://github.com/zengxiangbang/${params.repo}.git"
 		//		 }
           }
@@ -128,18 +128,20 @@ pipeline{
          stage('部暑到生产环境') {
             when {
                  expression {
-                 "$GIT_BRANCH" == "master"
+                 "$BRANCH" == "master"
             }
          }
              steps {
+                 sh "env"
                  container('kubectl') {
+                     sh "env"
                      step([$class: 'KubernetesDeploy', context: [configs: 'deployment.yaml', dockerCredentials: [[credentialsId: 'harbor2-repos', url: 'https://harbor2.mail.10086.cn']], kubeConfig: [path: ''], kubeconfigId: 'k8sCertAuth', secretName: 'harborsecret']])                    }
                     }
                 }
          stage('发布到测试环境') {
              when {
                  expression {
-                 "$GIT_BRANCH" == "test"
+                 "$BRANCH" == "test"
              }
                     }
              steps {
