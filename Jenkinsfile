@@ -2,7 +2,9 @@ pipeline{
       // 定义groovy脚本中使用的环境变量
       environment{
         // 本示例中使用DEPLOY_TO_K8S变量来决定把应用部署到哪套容器集群环境中，如“Production Environment”， “Staging001 Environment”等
-        IMAGE_TAG =  sh(returnStdout: true,script: 'echo $image_tag').trim()
+        //    IMAGE_TAG =  sh(returnStdout: true,script: 'echo $image_tag').trim()
+        // 来来作为 使用build_number作为image_tag
+        IMAGE_TAG =  sh(returnStdout: true,script: 'echo $BUILD_NUMBER').trim()  
         BRANCH =  sh(returnStdout: true,script: 'echo $branch').trim()
       }
 
@@ -66,7 +68,7 @@ pipeline{
         stage('Package'){
           steps{
               container("maven") {
-                  sh "mvn package -B -DskipTests"
+                  sh "mvn package -B -DskipTests -P ${BRANCH}"
               }
           }
         }
@@ -75,33 +77,33 @@ pipeline{
         stage('Image Build And Publish'){
           steps{
               container("kaniko") {
-                  sh "kaniko -f `pwd`/Dockerfile -c `pwd` --destination=${ORIGIN_REPO}/${REPO}:${IMAGE_TAG}"
+                  sh "kaniko -f `pwd`/Dockerfile -c `pwd` --destination=${ORIGIN_REPO}/${BRANCH}/${REPO}:${IMAGE_TAG}"
               }
           }
         }
-        stage('Deploy to Kubernetes') {
+        stage('部暑到kubernetes') {
         parallel {
-         stage('Deploy to Production Environment') {
+         stage('部暑到生产环境') {
             when {
-             expression {
-             "$BRANCH" == "master"
+                 expression {
+                 "$BRANCH" == "master"
             }
          }
-         steps {
-             container('kubectl') {
-                  step([$class: 'KubernetesDeploy', context: [configs: 'deployment.yaml', dockerCredentials: [[credentialsId: 'harbor2-repos', url: 'https://harbor2.mail.10086.cn']], kubeConfig: [path: ''], kubeconfigId: 'k8sCertAuth', secretName: 'harborsecret', ssh: [sshCredentialsId: '*', sshServer: ''], textCredentials: [certificateAuthorityData: '', clientCertificateData: '', clientKeyData: '', serverUrl: 'https://']]])                    }
+             steps {
+                 container('kubectl') {
+                     step([$class: 'KubernetesDeploy', context: [configs: 'deployment.yaml', dockerCredentials: [[credentialsId: 'harbor2-repos', url: 'https://harbor2.mail.10086.cn']], kubeConfig: [path: ''], kubeconfigId: 'k8sCertAuth', secretName: 'harborsecret']])                    }
                     }
                 }
-                stage('Deploy to Staging001 Environment') {
-                    when {
-                        expression {
-                            "$BRANCH" == "latest"
-                        }
+         stage('发布到测试环境') {
+             when {
+                 expression {
+                 "$BRANCH" == "test"
+             }
                     }
-                    steps {
-                        container('kubectl') {
-                       step([$class: 'KubernetesDeploy', context: [configs: 'deployment.yaml', dockerCredentials: [[credentialsId: 'harbor2-repos', url: 'https://harbor2.mail.10086.cn']], kubeConfig: [path: ''], kubeconfigId: 'k8sCertAuth', secretName: 'harborsecret', ssh: [sshCredentialsId: '*', sshServer: ''], textCredentials: [certificateAuthorityData: '', clientCertificateData: '', clientKeyData: '', serverUrl: 'https://']]])
-                }
+             steps {
+                 container('kubectl') {
+                     step([$class: 'KubernetesDeploy', context: [configs: 'deployment.yaml', dockerCredentials: [[credentialsId: 'harbor2-repos', url: 'https://harbor2.mail.10086.cn']], kubeConfig: [path: ''], kubeconfigId: 'k8sCertAuth', secretName: 'harborsecret']])  
+                     }
                     }
                 }
             }
